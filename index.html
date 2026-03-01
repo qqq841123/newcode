@@ -3,81 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Snippet Manager</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <title>六六代碼庫 | 66 Code Library</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root { --sidebar-width: 300px; --primary: #2563eb; --bg: #f8fafc; }
-        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; background: white; }
-        
-        /* 側邊欄 */
-        #sidebar { width: var(--sidebar-width); background: var(--bg); border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #e2e8f0; }
-        #search { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-        #list-container { flex: 1; overflow-y: auto; }
-        .nav-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: 0.2s; font-size: 0.95rem; }
-        .nav-item:hover { background: #eff6ff; color: var(--primary); }
-        .nav-item.active { background: #dbeafe; border-left: 4px solid var(--primary); font-weight: bold; }
+        :root {
+            --primary-neon: #00f2ff;
+            --accent-purple: #7000ff;
+            --sidebar-glass: rgba(0, 0, 0, 0.5);
+            --item-hover: rgba(0, 242, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background: #000;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        /* 側邊欄優化：毛玻璃質感 */
+        #sidebar {
+            width: 300px;
+            background: var(--sidebar-glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+        }
+
+        .sidebar-header { padding: 40px 20px 20px 20px; }
+        .sidebar-header h2 {
+            font-size: 1.6rem;
+            color: var(--primary-neon);
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.6);
+            margin: 0 0 25px 0;
+            letter-spacing: 3px;
+            text-align: center;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            border-radius: 25px;
+            color: white;
+            outline: none;
+            transition: 0.4s;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        #searchInput:focus {
+            border-color: var(--primary-neon);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        #list-container { flex: 1; overflow-y: auto; padding: 15px; }
+        .nav-item {
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: 0.3s;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+            position: relative;
+        }
+        .nav-item:hover {
+            background: var(--item-hover);
+            color: #fff;
+            border-color: var(--primary-neon);
+            transform: translateX(5px);
+        }
+        .nav-item.active {
+            background: rgba(0, 242, 255, 0.2);
+            color: var(--primary-neon);
+            border-color: var(--primary-neon);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
 
         /* 主內容區 */
-        #main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        #display-area { flex: 1; padding: 30px; overflow-y: auto; }
-        .code-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: 0.2s; }
-        .btn-copy { background: var(--primary); color: white; }
-        .btn-admin { background: transparent; border: 1px solid #cbd5e1; color: #64748b; margin: 10px 20px; }
-        
-        /* 管理員面板 */
-        #admin-panel { background: #f1f5f9; padding: 25px; border-top: 2px solid var(--primary); display: none; }
-        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        input, select, textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; }
-        textarea { width: 100%; height: 120px; font-family: monospace; margin-top: 10px; }
+        #main-content { flex: 1; position: relative; background: #000; overflow: hidden; }
 
-        pre[class*="language-"] { border-radius: 8px; font-size: 14px; }
+        /* 初始圖片展示區 */
+        #placeholder {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 5; transition: opacity 0.5s;
+        }
+        .welcome-image { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
+        .welcome-text { position: absolute; text-align: center; text-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+        .welcome-text h1 { font-size: 3.5rem; margin: 0; letter-spacing: 8px; }
+        .welcome-text p { color: var(--primary-neon); font-size: 1.1rem; margin-top: 15px; letter-spacing: 2px; }
+
+        /* 代碼顯示區 */
+        #code-view {
+            position: relative; z-index: 10; height: 100%; padding: 50px;
+            overflow-y: auto; background: rgba(5, 5, 5, 0.9);
+            backdrop-filter: blur(15px); display: none; box-sizing: border-box;
+        }
+        .code-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 20px;
+        }
+        #code-title { font-size: 2rem; margin: 0; color: #fff; }
+        .btn-copy {
+            background: var(--primary-neon); color: #000; border: none;
+            padding: 12px 28px; border-radius: 50px; cursor: pointer; font-weight: 700;
+        }
+
+        /* 管理員面板 */
+        #admin-panel {
+            display: none; position: fixed; bottom: 0; left: 300px; right: 0;
+            background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(20px);
+            border-top: 1px solid var(--accent-purple); padding: 30px; z-index: 100;
+        }
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        input, select, textarea {
+            background: rgba(255,255,255,0.05); border: 1px solid #333;
+            color: #fff; padding: 10px; border-radius: 8px;
+        }
+        #admin-delete-list { max-height: 150px; overflow-y: auto; margin-top: 15px; }
+
+        .admin-footer { padding: 20px; border-top: 1px solid var(--glass-border); }
     </style>
 </head>
 <body>
 
 <aside id="sidebar">
-    <div class="sidebar-header">
-        <h2 style="margin:0 0 10px 0; font-size: 1.2rem;">My Code Library</h2>
-        <input type="text" id="search" placeholder="搜尋標題...">
-    </div>
+<div class="sidebar-header">
+    <h2 onclick="goHome()" style="cursor: pointer;" title="回到封面">六六代碼庫</h2>
+    <input type="text" id="searchInput" placeholder="搜尋項目名稱...">
+</div>
     <div id="list-container"></div>
-    <button class="btn btn-admin" onclick="loginAdmin()">🔑 管理員模式</button>
+    <div class="admin-footer">
+        <button class="btn-admin" style="width:100%; background:none; border:1px solid #333; color:#555; padding:8px; cursor:pointer;" onclick="loginAdmin()">🔑 管理員權限</button>
+    </div>
 </aside>
 
 <main id="main-content">
-    <div id="display-area">
-        <div id="code-view" style="display:none;">
-            <div class="code-header">
-                <h2 id="code-title" style="margin:0;"></h2>
-                <button class="btn btn-copy" onclick="copyCode()">Copy Code</button>
-            </div>
-            <pre><code id="code-block" class="language-javascript"></code></pre>
-        </div>
-        <div id="placeholder" style="text-align:center; margin-top:100px; color:#94a3b8;">
-            <h3>請從左側選擇代碼片段</h3>
+    <div id="placeholder">
+        <img src="1.jpg" class="welcome-image">
+        <div class="welcome-text">
+            <h1>66 Code Library</h1>
+            <p>Select from the list on the left</p>
         </div>
     </div>
 
-    <div id="admin-panel">
-        <h3 style="margin-top:0;">🚀 新增代碼至 GitHub</h3>
-        <div class="admin-grid">
-            <input type="password" id="gh-token" placeholder="GitHub PAT (Token)">
-            <input type="text" id="gh-repo" placeholder="倉庫路徑 (username/repo)">
+    <div id="code-view">
+        <div class="code-header">
+            <div>
+                <h1 id="code-title"></h1>
+                <div id="code-lang-tag" style="color: var(--primary-neon); font-size: 0.8rem; margin-top: 8px; text-transform: uppercase;"></div>
+            </div>
+            <button class="btn-copy" onclick="copyCode()">COPY CODE</button>
         </div>
-        <div style="display: flex; gap:10px;">
-            <input type="text" id="admin-title" placeholder="代碼標題" style="flex:2;">
+        <pre><code id="code-block" class="language-javascript"></code></pre>
+    </div>
+
+    <div id="admin-panel">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+            <h3 style="margin:0; color:var(--accent-purple);">後台管理系統</h3>
+            <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button>
+        </div>
+        <div class="admin-grid">
+            <input type="password" id="gh-token" placeholder="GitHub Token">
+            <input type="text" id="gh-repo" placeholder="帳號/倉庫名">
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+            <input type="text" id="admin-title" placeholder="標題" style="flex:2;">
             <select id="admin-lang" style="flex:1;">
                 <option value="html">HTML</option>
                 <option value="javascript">JS</option>
-                <option value="python">Python</option>
                 <option value="css">CSS</option>
             </select>
-            <button class="btn btn-copy" id="btn-publish" onclick="publishToGithub()">發布更新</button>
+            <button onclick="publishToGithub()" id="btn-publish" style="background:var(--primary-neon); color:#000; border:none; padding:0 20px; border-radius:8px; cursor:pointer; font-weight:700;">發布</button>
         </div>
-        <textarea id="admin-raw-code" placeholder="在此貼上原始代碼..."></textarea>
-        <p id="status-msg" style="margin: 10px 0 0 0; font-size: 0.85rem;"></p>
+        <textarea id="admin-raw-code" style="width:100%; height:100px;" placeholder="貼上代碼..."></textarea>
+        <div id="admin-delete-list"></div>
+        <p id="status-msg" style="margin-top:10px; font-size:0.8rem;"></p>
     </div>
 </main>
 
