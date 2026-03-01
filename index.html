@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Snippet Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root { --sidebar-width: 300px; --primary: #2563eb; --bg: #f8fafc; }
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; background: white; }
+        
+        /* 側邊欄 */
+        #sidebar { width: var(--sidebar-width); background: var(--bg); border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #e2e8f0; }
+        #search { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        #list-container { flex: 1; overflow-y: auto; }
+        .nav-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: 0.2s; font-size: 0.95rem; }
+        .nav-item:hover { background: #eff6ff; color: var(--primary); }
+        .nav-item.active { background: #dbeafe; border-left: 4px solid var(--primary); font-weight: bold; }
+
+        /* 主內容區 */
+        #main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #display-area { flex: 1; padding: 30px; overflow-y: auto; }
+        .code-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: 0.2s; }
+        .btn-copy { background: var(--primary); color: white; }
+        .btn-admin { background: transparent; border: 1px solid #cbd5e1; color: #64748b; margin: 10px 20px; }
+        
+        /* 管理員面板 */
+        #admin-panel { background: #f1f5f9; padding: 25px; border-top: 2px solid var(--primary); display: none; }
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        input, select, textarea { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.9rem; }
+        textarea { width: 100%; height: 120px; font-family: monospace; margin-top: 10px; }
+
+        pre[class*="language-"] { border-radius: 8px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<aside id="sidebar">
+    <div class="sidebar-header">
+        <h2 style="margin:0 0 10px 0; font-size: 1.2rem;">My Code Library</h2>
+        <input type="text" id="search" placeholder="搜尋標題...">
+    </div>
+    <div id="list-container"></div>
+    <button class="btn btn-admin" onclick="loginAdmin()">🔑 管理員模式</button>
+</aside>
+
+<main id="main-content">
+    <div id="display-area">
+        <div id="code-view" style="display:none;">
+            <div class="code-header">
+                <h2 id="code-title" style="margin:0;"></h2>
+                <button class="btn btn-copy" onclick="copyCode()">Copy Code</button>
+            </div>
+            <pre><code id="code-block" class="language-javascript"></code></pre>
+        </div>
+        <div id="placeholder" style="text-align:center; margin-top:100px; color:#94a3b8;">
+            <h3>請從左側選擇代碼片段</h3>
+        </div>
+    </div>
+
+    <div id="admin-panel">
+        <h3 style="margin-top:0;">🚀 新增代碼至 GitHub</h3>
+        <div class="admin-grid">
+            <input type="password" id="gh-token" placeholder="GitHub PAT (Token)">
+            <input type="text" id="gh-repo" placeholder="倉庫路徑 (username/repo)">
+        </div>
+        <div style="display: flex; gap:10px;">
+            <input type="text" id="admin-title" placeholder="代碼標題" style="flex:2;">
+            <select id="admin-lang" style="flex:1;">
+                <option value="html">HTML</option>
+                <option value="javascript">JS</option>
+                <option value="python">Python</option>
+                <option value="css">CSS</option>
+            </select>
+            <button class="btn btn-copy" id="btn-publish" onclick="publishToGithub()">發布更新</button>
+        </div>
+        <textarea id="admin-raw-code" placeholder="在此貼上原始代碼..."></textarea>
+        <p id="status-msg" style="margin: 10px 0 0 0; font-size: 0.85rem;"></p>
+    </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
